@@ -1,0 +1,50 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=2,walltime=3:30:00
+#PBS -N app-fsl-probtrackx
+
+set -x
+set -e
+
+############# INPUT PARSING
+
+samples_dir=$(jq -r .bedpostx config.json)
+mask_brain_dwi=$(jq -r .brain_mask config.json)
+seed_surface_left=$(jq -r .seed_surface_left config.json)
+seed_surface_right=$(jq -r .seed_surface_right config.json)
+hemi=$(jq -r .hemisphere config.json)
+
+if [ "${hemi}" == "left"  ]; then
+	seed_surface=${seed_surface_left}
+else
+	seed_surface=${seed_surface_right}
+fi
+	
+seed_reference=$(jq -r .fa config.json)
+
+mask_avoid_left=$(jq -r .mask_avoid_left config.json)
+mask_avoid_right=$(jq -r .mask_avoid_right config.json)
+
+if [ "${hemi}" == "left"  ]; then
+	mask_avoid=${mask_avoid_left}
+else
+	mask_avoid=${mask_avoid_right}
+fi
+
+mask_target=$(jq -r .left config.json)
+
+mask_termination_left=$(jq -r .mask_termination_left config.json)
+mask_termination_right=$(jq -r .mask_termination_right config.json)
+
+if [ "${hemi}" == "left"  ]; then
+	mask_termination=${mask_termination_left}
+else
+	mask_termination=${mask_termination_right}
+fi
+
+############# MAIN
+
+outputdir=./probtrackx_outputs
+mkdir ${outputdir}
+
+singularity exec -e docker://brainlife/fsl:6.0.1 \
+	./main.sh ${samples_dir} ${mask_brain_dwi} ${seed_surface} ${seed_reference} ${mask_avoid} ${mask_target} ${mask_termination} ${outputdir}
