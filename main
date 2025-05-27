@@ -32,6 +32,8 @@ fi
 
 mask_target=$(jq -r .left config.json)
 
+echo "${mask_target[@]}"
+
 mask_termination_left=$(jq -r .mask_termination_left config.json)
 mask_termination_right=$(jq -r .mask_termination_right config.json)
 
